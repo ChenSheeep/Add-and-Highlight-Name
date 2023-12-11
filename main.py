@@ -27,20 +27,20 @@ def add_text_box(input_pdf, output_pdf, text, x, y, font_name, font_size):
     x_position = width - x - text_width
     y_position = height - y - text_height
 
-    # Add the text box to the first page
+    # Add the text box to the first page only
     for i, page in enumerate(pdf_reader.pages):
-        packet = io.BytesIO()
-        can = canvas.Canvas(packet, pagesize=(width, height))
-        can.setFont(font_name, font_size)
-        can.setFillColorRGB(0, 0, 0)  # Set fill color to black
-        can.drawString(x_position, y_position, text)
-        can.save()
-
-        packet.seek(0)
-        new_pdf = PdfReader(packet)
-
-        # Only merge the text box on the first page
         if i == 0:
+            packet = io.BytesIO()
+            can = canvas.Canvas(packet, pagesize=(width, height))
+            can.setFont(font_name, font_size)
+            can.setFillColorRGB(0, 0, 0)  # Set fill color to black
+            can.drawString(x_position, y_position, text)
+            can.save()
+
+            packet.seek(0)
+            new_pdf = PdfReader(packet)
+
+            # Merge the text box on the first page only
             page.merge_page(new_pdf.pages[0])
 
         pdf_writer.add_page(page)
@@ -50,46 +50,33 @@ def add_text_box(input_pdf, output_pdf, text, x, y, font_name, font_size):
         pdf_writer.write(output_file)
 
 
-def create_pdfs(input_pdf_path, output_folder, names_file):
-    # Read names from names.txt
-    with open(names_file, "r", encoding="utf-8") as file:
-        names = file.readlines()
+def process_pdfs(folder):
+    # Process each PDF file in the output folder
+    for filename in os.listdir(folder):
+        if filename.endswith(".pdf"):
+            pdf_path = os.path.join(folder, filename)
 
-    # Create output folder if it doesn't exist
-    os.makedirs(output_folder, exist_ok=True)
+            # Remove leading and trailing whitespaces, remove file extension
+            text_to_add = os.path.splitext(filename)[0].strip()
 
-    # Process each name
-    for name in names:
-        # Remove leading and trailing whitespaces
-        filename = f"{name.split()[0]}.pdf"
+            # Specify the position of the text box (offset from the upper right corner)
+            x_offset = 20
+            y_offset = 10
 
-        # Specify the PDF file path
-        output_pdf_path = os.path.join(output_folder, filename)
+            # Call the function to add the text box and overwrite the existing file
+            add_text_box(
+                pdf_path,
+                pdf_path,
+                text_to_add,
+                x_offset,
+                y_offset,
+                font_name="標楷體",
+                font_size=16,
+            )
 
-        # Specify the position of the text box (offset from the upper right corner)
-        x_offset = 20
-        y_offset = 10
-
-        # Call the function to add the text box
-        add_text_box(
-            input_pdf_path,
-            output_pdf_path,
-            name,
-            x_offset,
-            y_offset,
-            font_name="標楷體",
-            font_size=16,
-        )
-
-
-# Specify the PDF file path
-input_pdf_path = "test.pdf"
 
 # Specify the output folder
-output_folder = "output"
+folder = "output"
 
-# Specify the names file path
-names_file_path = "names.txt"
-
-# Call the function to create individual PDFs
-create_pdfs(input_pdf_path, output_folder, names_file_path)
+# Call the function to process PDF files in the output folder and overwrite existing files
+process_pdfs(folder)
