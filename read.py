@@ -22,10 +22,6 @@ for line in content:
         # If no English characters, take the second word onward as the representative
         representative = filename.split()[0][1:]
 
-    # Print the filename and its representative
-    print(filename)
-    print(representative)
-
     # Check if the line contains member information
     if len(parts) == 2:
         # If yes, split the members by ", " and store in the dictionary
