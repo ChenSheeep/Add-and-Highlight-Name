@@ -1,9 +1,86 @@
 import io
 import os
+import fitz  # PyMuPDF
+import re
+import os
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+
+
+def parse_member_file(filepath):
+    """
+    Parse the member file and return a dictionary containing filenames and associated members or representatives.
+    """
+    # Open the file and read its content
+    with open(filepath, "r", encoding="utf-8") as file:
+        content = file.readlines()
+
+    # Initialize a dictionary to store filenames and corresponding members or representatives
+    name_dict = {}
+
+    # Iterate through each line in the file
+    for line in content:
+        # Split the line based on ":"
+        parts = line.split(":")
+        filename = parts[0].strip()
+
+        # Check if the filename contains English characters
+        contains_english = re.search("[a-zA-Z]", filename)
+        if contains_english:
+            # If English characters are present, take the first word as the representative
+            representative = filename.split()[0]
+        else:
+            # If no English characters, take the second word onward as the representative
+            representative = filename.split()[0][1:]
+
+        # Check if the line contains member information
+        if len(parts) == 2:
+            # If yes, split the members by ", " and store in the dictionary
+            members = parts[1].strip().split(", ")
+            name_dict[filename] = members
+        else:
+            # If no member information, store the representative in the dictionary
+            name_dict[filename] = [representative]
+    return name_dict
+
+
+def highlight_keywords(pdf_path, keywords, output_path):
+    """
+    Highlight keywords in the first page of a PDF and save the modified PDF.
+    """
+    # Open the PDF document
+    pdf_document = fitz.open(pdf_path)
+
+    # Access the first page
+    page = pdf_document[0]
+
+    # Initialize a flag to check if any instances of any keyword were found
+    keyword_found = False
+
+    # Iterate through the list of keywords
+    for keyword in keywords:
+        # Search for the keyword on the page
+        keyword_instances = page.search_for(keyword)
+
+        # Check if any instances of the keyword were found
+        if keyword_instances:
+            # Set the flag to indicate that at least one keyword was found
+            keyword_found = True
+
+            # Iterate through each instance and add a highlight annotation
+            for inst in keyword_instances:
+                highlight = page.add_highlight_annot(inst)
+
+                # Set highlight color (here set to yellow), only set stroke color
+                highlight.set_colors({"stroke": (1, 1, 0)})
+
+    # Save the modified PDF only if at least one keyword was found
+    if keyword_found:
+        pdf_document.save(output_path)
+
+    pdf_document.close()
 
 
 def add_text_box(input_pdf, output_pdf, text, x, y, font_name, font_size):
@@ -73,6 +150,24 @@ def process_pdfs(folder):
                 font_name="標楷體",
                 font_size=16,
             )
+
+
+# Print the final dictionary
+filepath = "members.txt"
+pdf_path = "test.pdf"
+
+# Create the output folder if it doesn't exist
+output_folder = "output"
+os.makedirs(output_folder, exist_ok=True)
+name_dict = parse_member_file(filepath)
+
+# Iterate through the filenames and associated members or representatives
+for filename, members_or_representative in name_dict.items():
+    # Generate the output path for the modified PDF
+    output_path = f"{output_folder}/{filename}.pdf"
+
+    # Highlight keywords on the first page and save the modified PDF
+    highlight_keywords(pdf_path, members_or_representative, output_path)
 
 
 # Specify the output folder
