@@ -50,6 +50,9 @@ def highlight_keywords(pdf_path, keywords, output_path):
     # Access the first page
     page = pdf_document[0]
 
+    # Initialize a flag to check if any instances of any keyword were found
+    keyword_found = False
+
     # Iterate through the list of keywords
     for keyword in keywords:
         # Search for the keyword on the page
@@ -57,6 +60,9 @@ def highlight_keywords(pdf_path, keywords, output_path):
 
         # Check if any instances of the keyword were found
         if keyword_instances:
+            # Set the flag to indicate that at least one keyword was found
+            keyword_found = True
+
             # Iterate through each instance and add a highlight annotation
             for inst in keyword_instances:
                 highlight = page.add_highlight_annot(inst)
@@ -64,12 +70,10 @@ def highlight_keywords(pdf_path, keywords, output_path):
                 # Set highlight color (here set to yellow), only set stroke color
                 highlight.set_colors({"stroke": (1, 1, 0)})
 
-            # Save the modified PDF and return (no need to continue checking other keywords)
-            pdf_document.save(output_path)
-            pdf_document.close()
-            return
+    # Save the modified PDF only if at least one keyword was found
+    if keyword_found:
+        pdf_document.save(output_path)
 
-    # If no instances of any keyword were found, do not save the modified PDF
     pdf_document.close()
 
 
