@@ -96,9 +96,9 @@ def highlight_keywords(pdf_path, keywords, output_path):
     pdf_document.close()
 
 
-def add_text_box(input_pdf, output_pdf, text, x, y, font_name, font_size):
+def add_text_box(target_pdf, text, x, y, font_name, font_size):
     # Read the original PDF file
-    pdf_reader = PdfReader(input_pdf)
+    pdf_reader = PdfReader(target_pdf)
     pdf_writer = PdfWriter()
 
     # Register the Kaiu font
@@ -136,7 +136,7 @@ def add_text_box(input_pdf, output_pdf, text, x, y, font_name, font_size):
         pdf_writer.add_page(page)
 
     # Save the modified PDF file
-    with open(output_pdf, "wb") as output_file:
+    with open(target_pdf, "wb") as output_file:
         pdf_writer.write(output_file)
 
 
@@ -155,7 +155,6 @@ def process_pdfs(folder):
 
             # Call the function to add the text box and overwrite the existing file
             add_text_box(
-                pdf_path,
                 pdf_path,
                 text_to_add,
                 x_offset,
