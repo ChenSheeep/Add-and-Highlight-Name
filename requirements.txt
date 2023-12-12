@@ -2,3 +2,4 @@ PyPDF2==3.0.1
 reportlab==4.0.7
 PyMuPDF==1.23.7
 PyQt5==5.15.10
+pyinstaller==6.2.0
