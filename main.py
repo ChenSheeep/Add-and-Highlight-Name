@@ -35,9 +35,11 @@ def parse_member_file(filepath):
             filename = filename.split("(")[1].replace(") ", " ")
             # 取出中文名字後兩個字
             representative = [fullname.split("(")[0][-2:]]
+            representative.append(fullname.split("(")[0])
         else:
             # If no English characters, take the second word onward as the representative
             representative = [fullname[-2:]]
+            representative.append(fullname)
 
         # Check if the line contains member information
         if len(parts) == 2:
@@ -46,6 +48,7 @@ def parse_member_file(filepath):
             member = []
             for name in m_fullname:
                 member.append(name[-2:])
+                member.append(name)
                 if len(name) == 2:
                     spacename = f"{name[0]}  {name[1]}"
                     member.append(spacename)
@@ -145,6 +148,10 @@ def add_text_box(target_pdf, text, x, y, font_name, font_size):
     new_filename = filename.split()[0]
     new_filename += ".pdf"
     renamed_pdf = os.path.join(directory, new_filename)
+
+    if os.path.exists(renamed_pdf):
+        os.remove(renamed_pdf)
+
     os.rename(target_pdf, renamed_pdf)
 
 
