@@ -26,14 +26,16 @@ def parse_member_file(filepath):
         parts = line.split(":")
         filename = parts[0].strip()
 
+        representative = filename.split()[0]
         # Check if the filename contains English characters
         contains_english = re.search("[a-zA-Z]", filename)
-        if contains_english:
-            # If English characters are present, take the first word as the representative
-            representative = filename.split()[0]
-        else:
+
+        if not contains_english:
             # If no English characters, take the second word onward as the representative
-            representative = filename.split()[0][1:]
+            if len(representative) == 3:
+                representative = representative[1:]
+            elif len(representative) == 4:
+                representative = representative[2:]
 
         # Check if the line contains member information
         if len(parts) == 2:
