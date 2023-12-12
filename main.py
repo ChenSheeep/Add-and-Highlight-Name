@@ -139,6 +139,14 @@ def add_text_box(target_pdf, text, x, y, font_name, font_size):
     with open(target_pdf, "wb") as output_file:
         pdf_writer.write(output_file)
 
+    directory = os.path.dirname(target_pdf)
+    filename = os.path.basename(target_pdf).replace(".pdf", "")
+
+    new_filename = filename.split()[0]
+    new_filename += ".pdf"
+    renamed_pdf = os.path.join(directory, new_filename)
+    os.rename(target_pdf, renamed_pdf)
+
 
 def process_pdfs(folder):
     # Process each PDF file in the output folder
@@ -177,8 +185,8 @@ name_dict = parse_member_file(filepath)
 # Iterate through the filenames and associated members or representatives
 for filename, members_or_representative in name_dict.items():
     # Generate the output path for the modified PDF
-    new_filename = filename.split()
-    output_path = f"{output_folder}/{new_filename[0]}.pdf"
+    filename += ".pdf"
+    output_path = os.path.join(output_folder, filename)
 
     # Highlight keywords on the first page and save the modified PDF
     highlight_keywords(pdf_path, members_or_representative, output_path)
