@@ -149,9 +149,6 @@ def add_text_box(target_pdf, text, x, y, font_name, font_size):
     new_filename += ".pdf"
     renamed_pdf = os.path.join(directory, new_filename)
 
-    if os.path.exists(renamed_pdf):
-        os.remove(renamed_pdf)
-
     os.rename(target_pdf, renamed_pdf)
 
 
