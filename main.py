@@ -42,10 +42,19 @@ def parse_member_file(filepath):
         # Check if the line contains member information
         if len(parts) == 2:
             # If yes, split the members by ", " and store in the dictionary
-            members = parts[1].strip().split(", ")
-            name_dict[filename] = members
+            m_fullname = parts[1].strip().split(", ")
+            member = []
+            for name in m_fullname:
+                member.append(name[-2:])
+                if len(name) == 2:
+                    spacename = f"{name[0]}  {name[1]}"
+                    member.append(spacename)
+            name_dict[filename] = member
         else:
             # If no member information, store the representative in the dictionary
+            if len(fullname) == 2:
+                spacename = f"{fullname[0]}  {fullname[1]}"
+                representative.append(spacename)
             name_dict[filename] = representative
     return name_dict
 
@@ -164,6 +173,7 @@ pdf_path = "test.pdf"
 output_folder = "output"
 os.makedirs(output_folder, exist_ok=True)
 name_dict = parse_member_file(filepath)
+# print(name_dict)
 
 # Iterate through the filenames and associated members or representatives
 for filename, members_or_representative in name_dict.items():
