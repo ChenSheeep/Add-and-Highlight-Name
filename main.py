@@ -2,7 +2,6 @@ import io
 import os
 import fitz  # PyMuPDF
 import re
-import os
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
@@ -13,37 +12,32 @@ def parse_member_file(filepath):
     """
     Parse the member file and return a dictionary containing filenames and associated members or representatives.
     """
-    # Open the file and read its content
     with open(filepath, "r", encoding="utf-8") as file:
         content = file.readlines()
 
-    # Initialize a dictionary to store filenames and corresponding members or representatives
-    name_dict = {}
+    name_dict = (
+        {}
+    )  # Initialize a dictionary to store filenames and corresponding members or representatives
 
-    # Iterate through each line in the file
     for line in content:
-        # Split the line based on ":"
         parts = line.split(":")
         filename = parts[0].strip()
 
         fullname = filename.split()[0]
-        # Check if the filename contains English characters
         contains_english = re.search("[a-zA-Z]", filename)
 
         if contains_english:
-            # 檔名(右上角文字)用英文名字
+            # Extract English name and representative
             filename = filename.split("(")[1].replace(") ", " ")
-            # 取出中文名字後兩個字
             representative = [fullname.split("(")[0][-2:]]
             representative.append(fullname.split("(")[0])
         else:
-            # If no English characters, take the second word onward as the representative
+            # Extract representative from non-English filename
             representative = [fullname[-2:]]
             representative.append(fullname)
 
-        # Check if the line contains member information
         if len(parts) == 2:
-            # If yes, split the members by ", " and store in the dictionary
+            # Extract members if present in the line
             m_fullname = parts[1].strip().split(", ")
             member = []
             for name in m_fullname:
@@ -66,21 +60,14 @@ def highlight_keywords(pdf_path, keywords, output_path):
     """
     Highlight keywords in the first page of a PDF and save the modified PDF.
     """
-    # Open the PDF document
     pdf_document = fitz.open(pdf_path)
-
-    # Access the first page
     page = pdf_document[0]
-
-    # Initialize a flag to check if any instances of any keyword were found
     keyword_found = False
 
-    # Iterate through the list of keywords
     for keyword in keywords:
         # Search for the keyword on the page
         keyword_instances = page.search_for(keyword)
 
-        # Check if any instances of the keyword were found
         if keyword_instances:
             # Set the flag to indicate that at least one keyword was found
             keyword_found = True
@@ -88,8 +75,7 @@ def highlight_keywords(pdf_path, keywords, output_path):
             # Iterate through each instance and add a highlight annotation
             for inst in keyword_instances:
                 highlight = page.add_highlight_annot(inst)
-
-                # Set highlight color (here set to yellow), only set stroke color
+                # Set highlight color (here set to yellow)
                 highlight.set_colors({"stroke": (1, 1, 0)})
 
     # Save the modified PDF only if at least one keyword was found
@@ -100,7 +86,9 @@ def highlight_keywords(pdf_path, keywords, output_path):
 
 
 def add_text_box(target_pdf, text, x, y, font_name, font_size):
-    # Read the original PDF file
+    """
+    Add a text box to the specified location in a PDF.
+    """
     pdf_reader = PdfReader(target_pdf)
     pdf_writer = PdfWriter()
 
@@ -123,6 +111,7 @@ def add_text_box(target_pdf, text, x, y, font_name, font_size):
     # Add the text box to the first page only
     for i, page in enumerate(pdf_reader.pages):
         if i == 0:
+            # Create a PDF canvas to add text
             packet = io.BytesIO()
             can = canvas.Canvas(packet, pagesize=(width, height))
             can.setFont(font_name, font_size)
@@ -142,18 +131,18 @@ def add_text_box(target_pdf, text, x, y, font_name, font_size):
     with open(target_pdf, "wb") as output_file:
         pdf_writer.write(output_file)
 
+    # Rename the file by extracting the first word from the original filename
     directory = os.path.dirname(target_pdf)
     filename = os.path.basename(target_pdf).replace(".pdf", "")
-
-    new_filename = filename.split()[0]
-    new_filename += ".pdf"
+    new_filename = filename.split()[0] + ".pdf"
     renamed_pdf = os.path.join(directory, new_filename)
-
     os.rename(target_pdf, renamed_pdf)
 
 
 def process_pdfs(folder):
-    # Process each PDF file in the output folder
+    """
+    Process each PDF file in the specified folder.
+    """
     for filename in os.listdir(folder):
         if filename.endswith(".pdf"):
             pdf_path = os.path.join(folder, filename)
@@ -162,32 +151,24 @@ def process_pdfs(folder):
             text_to_add = os.path.splitext(filename)[0].strip()
 
             # Specify the position of the text box (offset from the upper right corner)
-            x_offset = 20
-            y_offset = 10
+            x_offset, y_offset = 20, 10
 
             # Call the function to add the text box and overwrite the existing file
             add_text_box(
-                pdf_path,
-                text_to_add,
-                x_offset,
-                y_offset,
-                font_name="標楷體",
-                font_size=16,
+                pdf_path, text_to_add, x_offset, y_offset, font_name="標楷體", font_size=16
             )
 
 
-# Print the final dictionary
+# File paths
 filepath = "names.txt"
 pdf_path = "template.pdf"
+output_folder = "output"
 
 # Create the output folder if it doesn't exist
-output_folder = "output"
 os.makedirs(output_folder, exist_ok=True)
 
-file_list = os.listdir(output_folder)
-
-# 遍历文件夹下的所有文件，并删除它们
-for file_name in file_list:
+# Delete all files in the output folder
+for file_name in os.listdir(output_folder):
     file_path = os.path.join(output_folder, file_name)
     try:
         if os.path.isfile(file_path):
@@ -195,21 +176,16 @@ for file_name in file_list:
     except Exception as e:
         print(f"Error deleting {file_path}: {e}")
 
+# Parse the member file and create a dictionary
 name_dict = parse_member_file(filepath)
-# print(name_dict)
 
 # Iterate through the filenames and associated members or representatives
 for filename, members_or_representative in name_dict.items():
-    # Generate the output path for the modified PDF
     filename += ".pdf"
     output_path = os.path.join(output_folder, filename)
 
     # Highlight keywords on the first page and save the modified PDF
     highlight_keywords(pdf_path, members_or_representative, output_path)
 
-
-# Specify the output folder
-folder = "output"
-
-# Call the function to process PDF files in the output folder and overwrite existing files
-process_pdfs(folder)
+# Process PDF files in the output folder and overwrite existing files
+process_pdfs(output_folder)
