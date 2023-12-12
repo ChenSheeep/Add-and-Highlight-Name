@@ -178,7 +178,8 @@ name_dict = parse_member_file(filepath)
 # Iterate through the filenames and associated members or representatives
 for filename, members_or_representative in name_dict.items():
     # Generate the output path for the modified PDF
-    output_path = f"{output_folder}/{filename}.pdf"
+    new_filename = filename.split()
+    output_path = f"{output_folder}/{new_filename[0]}.pdf"
 
     # Highlight keywords on the first page and save the modified PDF
     highlight_keywords(pdf_path, members_or_representative, output_path)
