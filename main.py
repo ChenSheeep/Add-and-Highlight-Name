@@ -26,7 +26,7 @@ def parse_member_file(filepath):
         parts = line.split(":")
         filename = parts[0].strip()
 
-        representative = filename.split()[0]
+        fullname = filename.split()[0]
         # Check if the filename contains English characters
         contains_english = re.search("[a-zA-Z]", filename)
 
@@ -34,10 +34,10 @@ def parse_member_file(filepath):
             # 檔名(右上角文字)用英文名字
             filename = filename.split("(")[1].replace(") ", " ")
             # 取出中文名字後兩個字
-            representative = representative.split("(")[0][-2:]
+            representative = [fullname.split("(")[0][-2:]]
         else:
             # If no English characters, take the second word onward as the representative
-            representative = representative[-2:]
+            representative = [fullname[-2:]]
 
         # Check if the line contains member information
         if len(parts) == 2:
@@ -46,7 +46,7 @@ def parse_member_file(filepath):
             name_dict[filename] = members
         else:
             # If no member information, store the representative in the dictionary
-            name_dict[filename] = [representative]
+            name_dict[filename] = representative
     return name_dict
 
 
