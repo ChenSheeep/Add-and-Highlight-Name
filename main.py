@@ -173,7 +173,7 @@ def process_pdfs(folder):
 
 
 # Print the final dictionary
-filepath = "members.txt"
+filepath = "names.txt"
 pdf_path = "template.pdf"
 
 # Create the output folder if it doesn't exist
