@@ -21,6 +21,7 @@ def load_name():
 
         # 計算相對路徑
         filepath = os.path.relpath(abs_path, current_dir)
+        ui.name_label.setWordWrap(True)
         ui.name_label.setText(filepath)
 
         # Parse the member file and create a dictionary
