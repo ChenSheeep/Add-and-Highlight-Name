@@ -2,10 +2,49 @@ import io
 import os
 import fitz  # PyMuPDF
 import re
+import sys
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from PyQt5 import QtWidgets, QtCore
+from scheduleUI import Ui_widget
+
+
+def load_name():
+    global filepath, name_dict
+    try:
+        abs_path = QtWidgets.QFileDialog.getOpenFileName(
+            None, "選擇輸出名單", ".", "Text Files (*.txt)"
+        )[0]
+        current_dir = os.getcwd()
+
+        # 計算相對路徑
+        filepath = os.path.relpath(abs_path, current_dir)
+        ui.name_label.setText(filepath)
+
+        # Parse the member file and create a dictionary
+        name_dict = parse_member_file(filepath)
+    except:
+        pass
+
+
+def load_schedule():
+    global pdf_path, output_folder
+    try:
+        abs_path = QtWidgets.QFileDialog.getOpenFileName(
+            None, "選擇輸出名單", ".", "PDF Files (*.pdf)"
+        )[0]
+        current_dir = os.getcwd()
+
+        # 計算相對路徑
+        pdf_path = os.path.relpath(abs_path, current_dir)
+        ui.schedule_label.setWordWrap(True)
+        ui.schedule_label.setText(pdf_path)
+
+        output_folder = pdf_path.replace(".pdf", "")
+    except:
+        pass
 
 
 def parse_member_file(filepath):
@@ -160,32 +199,65 @@ def process_pdfs(folder):
 
 
 # File paths
-filepath = "names.txt"
-pdf_path = "template.pdf"
-output_folder = "output"
+# pdf_path = "names.txt"
+# pdf_path = "template.pdf"
+# output_folder = "output"
 
-# Create the output folder if it doesn't exist
-os.makedirs(output_folder, exist_ok=True)
+# # Create the output folder if it doesn't exist
+# os.makedirs(output_folder, exist_ok=True)
 
-# Delete all files in the output folder
-for file_name in os.listdir(output_folder):
-    file_path = os.path.join(output_folder, file_name)
-    try:
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-    except Exception as e:
-        print(f"Error deleting {file_path}: {e}")
+# # Delete all files in the output folder
+# for file_name in os.listdir(output_folder):
+#     pdf_path = os.path.join(output_folder, file_name)
+#     try:
+#         if os.path.isfile(pdf_path):
+#             os.remove(pdf_path)
+#     except Exception as e:
+#         print(f"Error deleting {pdf_path}: {e}")
 
-# Parse the member file and create a dictionary
-name_dict = parse_member_file(filepath)
 
-# Iterate through the filenames and associated members or representatives
-for filename, members_or_representative in name_dict.items():
-    filename += ".pdf"
-    output_path = os.path.join(output_folder, filename)
+# # Parse the member file and create a dictionary
+# name_dict = parse_member_file(pdf_path)
+def main():
+    # Create the output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
 
-    # Highlight keywords on the first page and save the modified PDF
-    highlight_keywords(pdf_path, members_or_representative, output_path)
+    # Delete all files in the output folder
+    for file_name in os.listdir(output_folder):
+        filepath = os.path.join(output_folder, file_name)
+        try:
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+        except Exception as e:
+            print(f"Error deleting {filepath}: {e}")
 
-# Process PDF files in the output folder and overwrite existing files
-process_pdfs(output_folder)
+    # Iterate through the filenames and associated members or representatives
+    for filename, members_or_representative in name_dict.items():
+        filename += ".pdf"
+        output_path = os.path.join(output_folder, filename)
+
+        # Highlight keywords on the first page and save the modified PDF
+        highlight_keywords(pdf_path, members_or_representative, output_path)
+
+    # Process PDF files in the output folder and overwrite existing files
+    process_pdfs(output_folder)
+
+    mbox = QtWidgets.QMessageBox(widget)
+    mbox.information(widget, "提示訊息", f"全數輸出完畢！")
+    sys.exit()
+
+
+if __name__ == "__main__":
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    app = QtWidgets.QApplication(sys.argv)
+    widget = QtWidgets.QWidget()
+    ui = Ui_widget()
+    ui.setupUi(widget)
+
+    ui.load_name.clicked.connect(load_name)
+    ui.load_schedule.clicked.connect(load_schedule)
+    ui.start.clicked.connect(main)
+
+    widget.show()
+    app.exec_()
+    # sys.exit(app.exec_())
