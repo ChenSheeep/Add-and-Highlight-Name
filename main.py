@@ -183,6 +183,18 @@ pdf_path = "template.pdf"
 # Create the output folder if it doesn't exist
 output_folder = "output"
 os.makedirs(output_folder, exist_ok=True)
+
+file_list = os.listdir(output_folder)
+
+# 遍历文件夹下的所有文件，并删除它们
+for file_name in file_list:
+    file_path = os.path.join(output_folder, file_name)
+    try:
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"Error deleting {file_path}: {e}")
+
 name_dict = parse_member_file(filepath)
 # print(name_dict)
 
